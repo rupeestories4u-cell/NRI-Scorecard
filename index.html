@@ -191,12 +191,12 @@
 <div class="hero">
   <span class="hero-flag">🇮🇳</span>
   <h1>The NRI <em>Scorecard</em></h1>
-  <p class="hero-subtitle">13 questions. 130 points. An honest look at how financially prepared you really are — not just what you have, but how fragile it is.</p>
+  <p class="hero-subtitle">15 questions. 150 points. An honest look at how financially prepared you really are — not just what you have, but how fragile it is.</p>
   <div class="score-panel">
     <div class="score-label">Your Score</div>
     <div class="score-value" id="liveScore">0</div>
     <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar"></div></div>
-    <div class="score-progress-text" id="progressText">0 of 13 answered</div>
+    <div class="score-progress-text" id="progressText">0 of 15 answered</div>
   </div>
 </div>
 
@@ -336,6 +336,27 @@
       <button class="option" data-score="0"><span class="option-pts low">0</span><span class="option-label">Over 40% of net worth<small>Funding multiple futures with one salary</small></span></button>
     </div>
   </div>
+
+  <div class="q-card" id="card-14">
+    <div class="q-header"><span class="q-number">14</span><div><div class="q-title">Do you have a plan for supporting your parents?</div><div class="q-subtitle">We are Indian. The question isn't whether you'll support them — it's whether you've actually budgeted for it. Medical costs, flights, long-stay visas, assisted living. It adds up fast.</div></div></div>
+    <div class="options" data-q="14">
+      <button class="option" data-score="10"><span class="option-pts high">10</span><span class="option-label">Fully planned &amp; funded<small>Budget set, insurance in place, emergency fund earmarked</small></span></button>
+      <button class="option" data-score="5"><span class="option-pts">5</span><span class="option-label">Parents are self-sufficient<small>Pension / rental / own savings — you're a backup, not primary</small></span></button>
+      <button class="option" data-score="2"><span class="option-pts">2</span><span class="option-label">Informally planned<small>"We'll figure it out when the time comes"</small></span></button>
+      <button class="option" data-score="0"><span class="option-pts low">0</span><span class="option-label">Currently supporting, unplanned<small>Money goes out every month but no formal budget</small></span></button>
+    </div>
+  </div>
+
+  <div class="q-card" id="card-15" style="background: linear-gradient(135deg, #FFFDF5, #FFF8E7); border-color: #EDD084;">
+    <div class="q-header"><span class="q-number">15</span><div><div class="q-title">How much gold &amp; bullion do you carry? 😂</div><div class="q-subtitle">Jewelry, coins, bars, that "investment" your mom bought at the wedding. It's real wealth — but can you actually access it? Does your spouse know where it is? Did you declare it at customs? 👀</div></div></div>
+    <div class="options" data-q="15">
+      <button class="option" data-score="10"><span class="option-pts high">10</span><span class="option-label">Yes, and it's documented<small>Valued, insured, listed in estate plan. Spouse knows.</small></span></button>
+      <button class="option" data-score="5"><span class="option-pts">5</span><span class="option-label">Some jewelry / coins, loosely tracked<small>It's there. Somewhere. Worth something.</small></span></button>
+      <button class="option" data-score="2"><span class="option-pts">2</span><span class="option-label">A full locker in India, no paperwork<small>Grandma's gold. Undeclared. Undocumented.</small></span></button>
+      <button class="option" data-score="0"><span class="option-pts low">0</span><span class="option-label">What gold? 😅<small>Spent it all on the H4 visa application fees</small></span></button>
+    </div>
+  </div>
+
 </div>
 
 <div class="fear-section" style="margin-top:32px;">
@@ -372,7 +393,7 @@
 <div class="results-panel" id="resultsPanel">
   <div class="result-score-card">
     <h2>Score Breakdown by Category</h2>
-    <div class="result-big-score" id="finalScore">0<span>/130</span></div>
+    <div class="result-big-score" id="finalScore">0<span>/150</span></div>
     <div class="result-label" id="scoreLabel">—</div>
   </div>
   <div class="breakdown-title">Category Breakdown</div>
@@ -380,6 +401,7 @@
     <div class="breakdown-item"><span class="breakdown-icon">💰</span><span class="breakdown-name">Wealth Foundation</span><div class="breakdown-bar-wrap"><div class="breakdown-bar" id="bar-wealth"></div></div><span class="breakdown-pts" id="pts-wealth">0 / 40</span></div>
     <div class="breakdown-item"><span class="breakdown-icon">🛡️</span><span class="breakdown-name">Security Layer</span><div class="breakdown-bar-wrap"><div class="breakdown-bar" id="bar-security"></div></div><span class="breakdown-pts" id="pts-security">0 / 40</span></div>
     <div class="breakdown-item"><span class="breakdown-icon">🔭</span><span class="breakdown-name">Future Readiness</span><div class="breakdown-bar-wrap"><div class="breakdown-bar" id="bar-future"></div></div><span class="breakdown-pts" id="pts-future">0 / 50</span></div>
+    <div class="breakdown-item"><span class="breakdown-icon">🥇</span><span class="breakdown-name">Parents &amp; Gold</span><div class="breakdown-bar-wrap"><div class="breakdown-bar" id="bar-bonus"></div></div><span class="breakdown-pts" id="pts-bonus">0 / 20</span></div>
     <div class="breakdown-item"><span class="breakdown-icon">😰</span><span class="breakdown-name">Fear Index</span><div class="breakdown-bar-wrap"><div class="breakdown-bar" id="bar-fear"></div></div><span class="breakdown-pts" id="pts-fear">No penalty</span></div>
   </div>
   <button class="share-btn" onclick="copyScore()">📋 Copy Score to Share on r/RupeeStories</button>
@@ -428,35 +450,38 @@
     let total = 0, count = 0;
     for (let k in answers) { total += answers[k]; count++; }
     document.getElementById('liveScore').textContent = total;
-    document.getElementById('progressText').textContent = count + ' of 13 answered';
-    document.getElementById('progressBar').style.width = (count/13*100)+'%';
+    document.getElementById('progressText').textContent = count + ' of 15 answered';
+    document.getElementById('progressBar').style.width = (count/15*100)+'%';
   }
 
   function calculateScore() {
     const w = (answers[1]||0)+(answers[2]||0)+(answers[3]||0)+(answers[4]||0);
     const s = (answers[5]||0)+(answers[6]||0)+(answers[7]||0)+(answers[8]||0);
     const f = (answers[9]||0)+(answers[10]||0)+(answers[11]||0)+(answers[12]||0)+(answers[13]||0);
+    const b = (answers[14]||0)+(answers[15]||0);
     const fp = fearScore > 7 ? -5 : 0;
-    let score = w + s + f + fp;
+    let score = w + s + f + b + fp;
     if (document.querySelectorAll('.flag-item.checked').length >= 3) score = Math.round(score * 0.8);
 
     document.getElementById('pts-wealth').textContent   = w + ' / 40';
     document.getElementById('pts-security').textContent = s + ' / 40';
     document.getElementById('pts-future').textContent   = f + ' / 50';
+    document.getElementById('pts-bonus').textContent    = b + ' / 20';
     document.getElementById('pts-fear').textContent     = fp < 0 ? '−5 pts' : 'No penalty';
 
     setTimeout(() => {
       document.getElementById('bar-wealth').style.width   = (w/40*100)+'%';
       document.getElementById('bar-security').style.width = (s/40*100)+'%';
       document.getElementById('bar-future').style.width   = (f/50*100)+'%';
+      document.getElementById('bar-bonus').style.width    = (b/20*100)+'%';
       document.getElementById('bar-fear').style.width     = fp < 0 ? '20%' : '100%';
     }, 100);
 
-    document.getElementById('finalScore').innerHTML = score+'<span>/130</span>';
+    document.getElementById('finalScore').innerHTML = score+'<span>/150</span>';
     document.getElementById('scoreLabel').textContent =
-      score>=110 ? '🟢 Fortress-level resilience' :
-      score>=85  ? '🟡 Solid, a few gaps to close' :
-      score>=60  ? '🟠 Structurally fragile — act soon' :
+      score>=128 ? '🟢 Fortress-level resilience' :
+      score>=98  ? '🟡 Solid, a few gaps to close' :
+      score>=70  ? '🟠 Structurally fragile — act soon' :
                    '🔴 High fragility — needs urgent attention';
     document.getElementById('liveScore').textContent = score;
     const p = document.getElementById('resultsPanel');
@@ -467,7 +492,7 @@
   function copyScore() {
     const score = document.getElementById('result-big-score')?.textContent || document.getElementById('finalScore').textContent;
     const label = document.getElementById('scoreLabel').textContent;
-    const text = `My NRI Scorecard Results\n\nFinal Score: ${document.getElementById('finalScore').textContent.replace(/<[^>]+>/g,'')}\n${label}\n\n💰 Wealth Foundation: ${document.getElementById('pts-wealth').textContent}\n🛡️ Security Layer: ${document.getElementById('pts-security').textContent}\n🔭 Future Readiness: ${document.getElementById('pts-future').textContent}\n\nTake the test → https://rupeestories4u-cell.github.io/NRI-Scorecard/\nr/RupeeStories`;
+    const text = `My NRI Scorecard Results\n\nFinal Score: ${document.getElementById('finalScore').textContent.replace(/<[^>]+>/g,'')}\n${label}\n\n💰 Wealth Foundation: ${document.getElementById('pts-wealth').textContent}\n🛡️ Security Layer: ${document.getElementById('pts-security').textContent}\n🔭 Future Readiness: ${document.getElementById('pts-future').textContent}\n🥇 Parents & Gold: ${document.getElementById('pts-bonus').textContent}\n\nTake the test → https://rupeestories4u-cell.github.io/NRI-Scorecard/\nr/RupeeStories`;
     navigator.clipboard.writeText(text).then(() => {
       const btn = document.querySelector('.share-btn');
       btn.textContent = '✅ Copied! Paste it in r/RupeeStories';
