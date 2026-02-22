@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>NRI Scorecard</title>
+<style>
+body { font-family: Arial; background:#111; color:white; padding:20px; }
+h1 { color:#f7b733; }
+.section { margin-bottom:20px; padding:15px; background:#1c1c1c; border-radius:8px; }
+select { width:100%; padding:8px; margin-top:5px; }
+button { padding:10px 20px; background:#f7b733; border:none; font-weight:bold; cursor:pointer; }
+.result { font-size:20px; margin-top:20px; padding:15px; background:#222; border-radius:8px; }
+</style>
+</head>
+<body>
+
+<h1>THE NRI SCORECARD</h1>
+
+<div class="section">
+<h3>Wealth Foundation</h3>
+<select id="wealth1">
+<option value="10">Net Worth: $2M+</option>
+<option value="5">$500K–$2M</option>
+<option value="2">$100K–$500K</option>
+<option value="0">Under $100K</option>
+</select>
+</div>
+
+<div class="section">
+<h3>Emergency Fund</h3>
+<select id="emergency">
+<option value="10">12+ months runway</option>
+<option value="5">6–12 months</option>
+<option value="2">3–6 months</option>
+<option value="0">Under 3 months</option>
+</select>
+</div>
+
+<div class="section">
+<h3>Retirement Planning</h3>
+<select id="retirement">
+<option value="10">Fully maxed 401K + IRA</option>
+<option value="5">Contributing regularly</option>
+<option value="2">Occasional investing</option>
+<option value="0">No retirement savings</option>
+</select>
+</div>
+
+<div class="section">
+<h3>Behavior Flags</h3>
+<label><input type="checkbox" value="5" class="penalty"> Monthly burn > $10K</label><br>
+<label><input type="checkbox" value="5" class="penalty"> No will or estate plan</label><br>
+<label><input type="checkbox" value="5" class="penalty"> Single income household</label><br>
+<label><input type="checkbox" value="5" class="penalty"> High debt (>25% net worth)</label>
+</div>
+
+<button onclick="calculate()">Calculate Score</button>
+
+<div class="result" id="output"></div>
+
+<script>
+function calculate() {
+let score = 0;
+
+score += parseInt(document.getElementById("wealth1").value);
+score += parseInt(document.getElementById("emergency").value);
+score += parseInt(document.getElementById("retirement").value);
+
+let penalties = document.querySelectorAll(".penalty:checked");
+let penaltyScore = 0;
+penalties.forEach(p => penaltyScore += parseInt(p.value));
+
+let finalScore = score - penaltyScore;
+if(finalScore < 0) finalScore = 0;
+
+let band = "";
+if(finalScore >= 100) band = "Financially Sovereign";
+else if(finalScore >= 70) band = "Still Building";
+else if(finalScore >= 40) band = "Vulnerable";
+else band = "At Risk";
+
+document.getElementById("output").innerHTML =
+"Base Score: " + score +
+"<br>Penalty: -" + penaltyScore +
+"<br><br><b>Final Score: " + finalScore +
+"</b><br>Status: " + band;
+}
+</script>
+
+</body>
+</html>
