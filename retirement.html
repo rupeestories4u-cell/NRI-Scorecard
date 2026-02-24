@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NRI Retirement Match Scorecard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f3ef;
+    --surface: #ffffff;
+    --border: #e2ddd6;
+    --gold: #b07d2e;
+    --gold-light: #c9973e;
+    --gold-dim: rgba(176, 125, 46, 0.10);
+    --red: #c93030;
+    --amber: #c97a10;
+    --green: #2a8f6a;
+    --blue: #2f6fcc;
+    --text: #1a1814;
+    --muted: #7a7168;
+    --card: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Noise texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 24px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 56px;
+    animation: fadeDown 0.8s ease both;
+  }
+
+  .badge {
+    display: inline-block;
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+
+  h1 span { color: var(--gold); }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 300;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Progress bar */
+  .progress-track {
+    background: var(--border);
+    height: 2px;
+    border-radius: 2px;
+    margin-bottom: 48px;
+    overflow: hidden;
+    animation: fadeIn 1s ease 0.3s both;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+
+  .progress-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-align: right;
+    margin-bottom: 8px;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 40px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Question card */
+  .q-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+
+  .q-card:hover { border-color: rgba(176,125,46,0.35); box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+
+  .q-label {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .q-label strong {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    display: block;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  /* Options */
+  .options {
+    display: grid;
+    gap: 8px;
+  }
+
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--muted);
+    text-align: left;
+  }
+
+  .option:hover {
+    border-color: rgba(176,125,46,0.4);
+    color: var(--text);
+    background: rgba(176,125,46,0.05);
+  }
+
+  .option.selected {
+    border-color: var(--gold);
+    background: var(--gold-dim);
+    color: var(--text);
+  }
+
+  .option-dot {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    margin-top: 1px;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .option.selected .option-dot {
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .option.selected .option-dot::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    background: var(--bg);
+    border-radius: 50%;
+  }
+
+  /* Score display toggle */
+  .score-hint {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-left: auto;
+    opacity: 0.5;
+  }
+
+  /* CTA Button */
+  .cta-wrap {
+    text-align: center;
+    margin: 48px 0;
+  }
+
+  .btn-calc {
+    background: var(--gold);
+    color: #ffffff;
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 16px 48px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-calc:hover {
+    background: var(--gold-light);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(176,125,46,0.25);
+  }
+
+  .btn-calc:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Results panel */
+  #results {
+    display: none;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .score-header {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .score-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% -20%, rgba(176,125,46,0.07) 0%, transparent 70%);
+  }
+
+  .score-ring {
+    width: 140px;
+    height: 140px;
+    margin: 0 auto 24px;
+    position: relative;
+  }
+
+  .score-ring svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .score-ring circle {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+  }
+
+  .ring-bg { stroke: #e2ddd6; }
+  .ring-fill {
+    stroke: var(--gold);
+    stroke-dasharray: 0 339;
+    transition: stroke-dasharray 1.5s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+  }
+
+  .score-number {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .score-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--gold);
+  }
+
+  .score-max {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+  }
+
+  .grade-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .grade-desc {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 300;
+    max-width: 400px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Category scores */
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .cat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+
+  .cat-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .cat-score {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .cat-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .cat-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.5s;
+    width: 0%;
+  }
+
+  /* Recommendations */
+  .rec-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .rec-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .rec-icon {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .rec-content h4 {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .rec-content p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .sev-critical { background: rgba(201,48,48,0.08); color: var(--red); border: 1px solid rgba(201,48,48,0.18); }
+  .sev-warning  { background: rgba(201,122,16,0.08); color: var(--amber); border: 1px solid rgba(201,122,16,0.18); }
+  .sev-good     { background: rgba(42,143,106,0.08); color: var(--green); border: 1px solid rgba(42,143,106,0.18); }
+  .sev-info     { background: rgba(47,111,204,0.08); color: var(--blue); border: 1px solid rgba(47,111,204,0.18); }
+
+  .color-critical { color: var(--red); }
+  .color-warning  { color: var(--amber); }
+  .color-good     { color: var(--green); }
+
+  .reset-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    padding: 12px 32px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 32px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .reset-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  /* Footer note */
+  .footer-note {
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-top: 48px;
+    opacity: 0.5;
+    line-height: 1.6;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .section:nth-child(1) { animation-delay: 0.1s; }
+  .section:nth-child(2) { animation-delay: 0.2s; }
+  .section:nth-child(3) { animation-delay: 0.3s; }
+  .section:nth-child(4) { animation-delay: 0.4s; }
+  .section:nth-child(5) { animation-delay: 0.5s; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="badge">NRI Financial Clarity</div>
+    <h1>Retirement <span>Match</span> Scorecard</h1>
+    <p class="subtitle">Assess how well your retirement strategy is calibrated for the NRI reality — two countries, two tax systems, one life plan.</p>
+  </div>
+
+  <div id="quiz">
+    <div class="progress-label" id="progress-label">0 / 16 ANSWERED</div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+
+    <!-- SECTION 1: WHERE YOU'LL RETIRE -->
+    <div class="section">
+      <div class="section-title">01 — Retirement Geography</div>
+
+      <div class="q-card">
+        <div class="q-label">
+          <strong>Q1 · Destination</strong>
+          Where do you plan to retire?
+        </div>
+        <div class="options" data-qid="q1">
+          <button class="option" data-score="10" data-cat="geo" onclick="select(this)"><span class="option-dot"></span>Primarily India — I plan to return</button>
+          <button class="option" data-score="7" data-cat="geo" onclick="select(this)"><span class="option-dot"></span>Split — 6 months in US, 6 months in India</button>
+          <button class="option" data-score="4" data-cat="geo" onclick="select(this)"><span class="option-dot"></span>Primarily USA — staying here permanently</button>
+          <button class="option" data-score="2" data-cat="geo" onclick="select(this)"><span class="option-dot"></span>Third country (Europe, Southeast Asia, etc.)</button>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">
+          <strong>Q2 · Citizenship Timeline</strong>
+          What is your current immigration status / citizenship plan?
+        </div>
+        <div class="options" data-qid="q2">
+          <button class="option" data-score="10" data-cat="geo" onclick="select(this)"><span class="option-dot"></span>US citizen or planning citizenship — maximum flexibility</button>
+          <button class="option" data-score="7" data-cat="geo" onclick="select(this)"><span class="option-dot"></span>Green card holder — building roots here</button>
+          <button class="option" data-score="4" data-cat="geo" onclick="select(this)"><span class="option-dot"></span>H1B / EAD — path unclear, keeping options open</button>
+          <button class="option" data-score="2" data-cat="geo" onclick="select(this)"><span class="option-dot"></span>Temporary worker — likely returning to India within 5 years</button>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">
+          <strong>Q3 · Real Estate Anchor</strong>
+          Do you own property in India?
+        </div>
+        <div class="options" data-qid="q3">
+          <button class="option" data-score="10" data-cat="geo" onclick="select(this)"><span class="option-dot"></span>Yes — income-generating property (rental) in India</button>
+          <button class="option" data-score="7" data-cat="geo" onclick="select(this)"><span class="option-dot"></span>Yes — self-use property (no rental income)</button>
+          <button class="option" data-score="4" data-cat="geo" onclick="select(this)"><span class="option-dot"></span>Planning to buy before retirement</button>
+          <button class="option" data-score="2" data-cat="geo" onclick="select(this)"><span class="option-dot"></span>No Indian property — will rely on US assets</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: TAX PREPAREDNESS -->
+    <div class="section">
+      <div class="section-title">02 — Cross-Border Tax Strategy</div>
+
+      <div class="q-card">
+        <div class="q-label">
+          <strong>Q4 · DTAA Awareness</strong>
+          How familiar are you with the India-USA Double Tax Avoidance Agreement (DTAA)?
+        </div>
+        <div class="options" data-qid="q4">
+          <button class="option" data-score="10" data-cat="tax" onclick="select(this)"><span class="option-dot"></span>Very familiar — I optimize my accounts based on treaty benefits</button>
+          <button class="option" data-score="6" data-cat="tax" onclick="select(this)"><span class="option-dot"></span>Aware it exists — haven't optimized yet</button>
+          <button class="option" data-score="3" data-cat="tax" onclick="select(this)"><span class="option-dot"></span>Heard of it — unclear how it applies to me</button>
+          <button class="option" data-score="0" data-cat="tax" onclick="select(this)"><span class="option-dot"></span>Never heard of it</button>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">
+          <strong>Q5 · US Retirement Account Utilization</strong>
+          Are you maxing out US tax-advantaged retirement accounts?
+        </div>
+        <div class="options" data-qid="q5">
+          <button class="option" data-score="10" data-cat="tax" onclick="select(this)"><span class="option-dot"></span>Yes — maxing 401k + IRA (or backdoor Roth) every year</button>
+          <button class="option" data-score="7" data-cat="tax" onclick="select(this)"><span class="option-dot"></span>Maxing 401k but not IRA</button>
+          <button class="option" data-score="4" data-cat="tax" onclick="select(this)"><span class="option-dot"></span>Contributing to 401k but not at max</button>
+          <button class="option" data-score="1" data-cat="tax" onclick="select(this)"><span class="option-dot"></span>No US retirement accounts / minimal contribution</button>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">
+          <strong>Q6 · India Account Status</strong>
+          Are your India accounts correctly structured as NRE/NRO?
+        </div>
+        <div class="options" data-qid="q6">
+          <button class="option" data-score="10" data-cat="tax" onclick="select(this)"><span class="option-dot"></span>Yes — NRE for remittances (tax-free in India), NRO for local income</button>
+          <button class="option" data-score="5" data-cat="tax" onclick="select(this)"><span class="option-dot"></span>Have NRE or NRO but not both / partially correct</button>
+          <button class="option" data-score="1" data-cat="tax" onclick="select(this)"><span class="option-dot"></span>Still have resident savings accounts — not converted</button>
+          <button class="option" data-score="0" data-cat="tax" onclick="select(this)"><span class="option-dot"></span>No India accounts</button>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">
+          <strong>Q7 · FBAR / FATCA Compliance</strong>
+          Are you compliant with US foreign account reporting (FBAR & FATCA)?
+        </div>
+        <div class="options" data-qid="q7">
+          <button class="option" data-score="10" data-cat="tax" onclick="select(this)"><span class="option-dot"></span>Yes — filing FBAR and Form 8938 annually as required</button>
+          <button class="option" data-score="5" data-cat="tax" onclick="select(this)"><span class="option-dot"></span>Partially — filing one but unsure about the other</button>
+          <button class="option" data-score="0" data-cat="tax" onclick="select(this)"><span class="option-dot"></span>Not filing — unaware or ignoring the requirement</button>
+          <button class="option" data-score="7" data-cat="tax" onclick="select(this)"><span class="option-dot"></span>Accounts below threshold — not required to file</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: WEALTH ALLOCATION -->
+    <div class="section">
+      <div class="section-title">03 — Asset Allocation & Currency Risk</div>
+
+      <div class="q-card">
+        <div class="q-label">
+          <strong>Q8 · USD vs INR Split</strong>
+          What percentage of your net worth is in India (INR-denominated)?
+        </div>
+        <div class="options" data-qid="q8">
+          <button class="option" data-score="9" data-cat="alloc" onclick="select(this)"><span class="option-dot"></span>25–40% in India — well-balanced for India retirement</button>
+          <button class="option" data-score="7" data-cat="alloc" onclick="select(this)"><span class="option-dot"></span>10–24% in India — mostly US-based</button>
+          <button class="option" data-score="5" data-cat="alloc" onclick="select(this)"><span class="option-dot"></span>40–60% in India — significant India exposure</button>
+          <button class="option" data-score="2" data-cat="alloc" onclick="select(this)"><span class="option-dot"></span>&lt;10% or >60% — heavily lopsided</button>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">
+          <strong>Q9 · Currency Hedging Awareness</strong>
+          How are you managing INR depreciation risk on India-based retirement assets?
+        </div>
+        <div class="options" data-qid="q9">
+          <button class="option" data-score="10" data-cat="alloc" onclick="select(this)"><span class="option-dot"></span>Intentionally sizing India assets to account for long-term INR depreciation</button>
+          <button class="option" data-score="6" data-cat="alloc" onclick="select(this)"><span class="option-dot"></span>Aware of the risk but haven't formally adjusted allocation</button>
+          <button class="option" data-score="2" data-cat="alloc" onclick="select(this)"><span class="option-dot"></span>Not really considered it</button>
+          <button class="option" data-score="8" data-cat="alloc" onclick="select(this)"><span class="option-dot"></span>Retiring in India so INR depreciation is not a major risk for me</button>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">
+          <strong>Q10 · EPF / PPF / NPS Status (India)</strong>
+          Are you making use of India's tax-advantaged instruments?
+        </div>
+        <div class="options" data-qid="q10">
+          <button class="option" data-score="8" data-cat="alloc" onclick="select(this)"><span class="option-dot"></span>Active NPS contributor or have substantial PPF balance</button>
+          <button class="option" data-score="5" data-cat="alloc" onclick="select(this)"><span class="option-dot"></span>Have old EPF balance — not actively contributing</button>
+          <button class="option" data-score="3" data-cat="alloc" onclick="select(this)"><span class="option-dot"></span>Have minimal / dormant India retirement accounts</button>
+          <button class="option" data-score="1" data-cat="alloc" onclick="select(this)"><span class="option-dot"></span>No India-side retirement accounts</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: HEALTHCARE & FAMILY -->
+    <div class="section">
+      <div class="section-title">04 — Healthcare & Family Obligations</div>
+
+      <div class="q-card">
+        <div class="q-label">
+          <strong>Q11 · Healthcare Plan in Retirement</strong>
+          How do you plan to handle healthcare costs in retirement?
+        </div>
+        <div class="options" data-qid="q11">
+          <button class="option" data-score="10" data-cat="health" onclick="select(this)"><span class="option-dot"></span>Will retire in India — private insurance + low cost of care planned</button>
+          <button class="option" data-score="8" data-cat="health" onclick="select(this)"><span class="option-dot"></span>Will qualify for Medicare (US) — fully covered</button>
+          <button class="option" data-score="5" data-cat="health" onclick="select(this)"><span class="option-dot"></span>Planning ACA marketplace coverage until Medicare eligible</button>
+          <button class="option" data-score="2" data-cat="health" onclick="select(this)"><span class="option-dot"></span>No clear healthcare plan yet</button>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">
+          <strong>Q12 · Parent Care Obligations</strong>
+          Do you have aging parents in India who may require financial support?
+        </div>
+        <div class="options" data-qid="q12">
+          <button class="option" data-score="10" data-cat="health" onclick="select(this)"><span class="option-dot"></span>Parents financially independent — no obligation expected</button>
+          <button class="option" data-score="6" data-cat="health" onclick="select(this)"><span class="option-dot"></span>Some support needed — already budgeted in retirement plan</button>
+          <button class="option" data-score="3" data-cat="health" onclick="select(this)"><span class="option-dot"></span>Likely significant support — not yet budgeted</button>
+          <button class="option" data-score="1" data-cat="health" onclick="select(this)"><span class="option-dot"></span>Full financial responsibility expected — not accounted for</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 5: INCOME STRATEGY -->
+    <div class="section">
+      <div class="section-title">05 — Retirement Income Blueprint</div>
+
+      <div class="q-card">
+        <div class="q-label">
+          <strong>Q13 · Withdrawal Strategy</strong>
+          Do you have a cross-border withdrawal/decumulation strategy?
+        </div>
+        <div class="options" data-qid="q13">
+          <button class="option" data-score="10" data-cat="income" onclick="select(this)"><span class="option-dot"></span>Yes — mapped which accounts to draw from and in what order (tax-optimized)</button>
+          <button class="option" data-score="6" data-cat="income" onclick="select(this)"><span class="option-dot"></span>Partial plan — know the accounts but not the sequence</button>
+          <button class="option" data-score="3" data-cat="income" onclick="select(this)"><span class="option-dot"></span>Will figure it out when I retire</button>
+          <button class="option" data-score="0" data-cat="income" onclick="select(this)"><span class="option-dot"></span>No strategy — just accumulating</button>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">
+          <strong>Q14 · Social Security Planning</strong>
+          Are you factoring in US Social Security into your retirement math?
+        </div>
+        <div class="options" data-qid="q14">
+          <button class="option" data-score="10" data-cat="income" onclick="select(this)"><span class="option-dot"></span>Yes — have estimated my benefit and know my optimal claiming age</button>
+          <button class="option" data-score="7" data-cat="income" onclick="select(this)"><span class="option-dot"></span>I'll qualify but haven't calculated the optimal strategy</button>
+          <button class="option" data-score="3" data-cat="income" onclick="select(this)"><span class="option-dot"></span>May not have enough work credits — unclear</button>
+          <button class="option" data-score="1" data-cat="income" onclick="select(this)"><span class="option-dot"></span>Won't qualify / not counting on it</button>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">
+          <strong>Q15 · Retirement Corpus Target</strong>
+          Have you calculated how much you need to retire?
+        </div>
+        <div class="options" data-qid="q15">
+          <button class="option" data-score="10" data-cat="income" onclick="select(this)"><span class="option-dot"></span>Yes — separate India and US expense targets with inflation assumptions</button>
+          <button class="option" data-score="7" data-cat="income" onclick="select(this)"><span class="option-dot"></span>Have a rough number — using 25× annual expense rule</button>
+          <button class="option" data-score="3" data-cat="income" onclick="select(this)"><span class="option-dot"></span>Some idea but not formally calculated</button>
+          <button class="option" data-score="0" data-cat="income" onclick="select(this)"><span class="option-dot"></span>No target — just saving what I can</button>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <div class="q-label">
+          <strong>Q16 · Professional Guidance</strong>
+          Do you have a financial advisor experienced with cross-border NRI planning?
+        </div>
+        <div class="options" data-qid="q16">
+          <button class="option" data-score="10" data-cat="income" onclick="select(this)"><span class="option-dot"></span>Yes — advisor with both US and India cross-border expertise</button>
+          <button class="option" data-score="6" data-cat="income" onclick="select(this)"><span class="option-dot"></span>US-only advisor — no India expertise</button>
+          <button class="option" data-score="4" data-cat="income" onclick="select(this)"><span class="option-dot"></span>India-side advisor only</button>
+          <button class="option" data-score="1" data-cat="income" onclick="select(this)"><span class="option-dot"></span>No advisor — self-managed</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-wrap">
+      <button class="btn-calc" id="calcBtn" onclick="calculate()" disabled>Calculate My Score</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="score-header">
+      <div class="score-ring">
+        <svg viewBox="0 0 120 120">
+          <circle class="ring-bg" cx="60" cy="60" r="54"/>
+          <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="54"/>
+        </svg>
+        <div class="score-number">
+          <div class="score-num" id="scoreNum">0</div>
+          <div class="score-max">/ 100</div>
+        </div>
+      </div>
+      <div class="grade-label" id="gradeLabel"></div>
+      <div class="grade-desc" id="gradeDesc"></div>
+    </div>
+
+    <div class="cat-grid" id="catGrid"></div>
+
+    <div class="section">
+      <div class="section-title">Actionable Recommendations</div>
+      <div class="rec-list" id="recList"></div>
+    </div>
+
+    <button class="reset-btn" onclick="resetQuiz()">↺ Retake Scorecard</button>
+  </div>
+
+  <div class="footer-note">
+    For educational purposes only · Not financial or tax advice<br>
+    Consult a SEBI-registered advisor and a CPA with NRI expertise for personalized guidance
+  </div>
+
+</div>
+
+<script>
+const answers = {};
+const TOTAL_Q = 16;
+
+function select(btn) {
+  const group = btn.closest('.options');
+  const qid = group.dataset.qid;
+  group.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  btn.classList.add('selected');
+  answers[qid] = {
+    score: parseInt(btn.dataset.score),
+    cat: btn.dataset.cat
+  };
+  updateProgress();
+}
+
+function updateProgress() {
+  const count = Object.keys(answers).length;
+  document.getElementById('progress-label').textContent = `${count} / ${TOTAL_Q} ANSWERED`;
+  const pct = (count / TOTAL_Q) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('calcBtn').disabled = count < TOTAL_Q;
+}
+
+function calculate() {
+  // Raw totals per category
+  const cats = { geo: {raw:0, max:0}, tax: {raw:0, max:0}, alloc: {raw:0, max:0}, health: {raw:0, max:0}, income: {raw:0, max:0} };
+  const catMax = { geo: 30, tax: 40, alloc: 30, health: 20, income: 40 };
+
+  for (const q in answers) {
+    const { score, cat } = answers[q];
+    cats[cat].raw += score;
+  }
+
+  // Normalize each category to its weight
+  const catWeights = { geo: 20, tax: 25, alloc: 20, health: 15, income: 20 };
+  let totalScore = 0;
+
+  const catData = {};
+  for (const c in cats) {
+    const maxPossible = catMax[c];
+    const pct = Math.min(cats[c].raw / maxPossible, 1);
+    const weighted = Math.round(pct * catWeights[c]);
+    totalScore += weighted;
+    catData[c] = { pct: Math.round(pct * 100), weighted, weight: catWeights[c] };
+  }
+
+  totalScore = Math.min(totalScore, 100);
+  showResults(totalScore, catData);
+}
+
+const CAT_LABELS = {
+  geo: 'Retirement Geography',
+  tax: 'Tax Strategy',
+  alloc: 'Asset Allocation',
+  health: 'Healthcare & Family',
+  income: 'Retirement Income'
+};
+
+function showResults(score, catData) {
+  document.getElementById('quiz').style.display = 'none';
+  const res = document.getElementById('results');
+  res.style.display = 'block';
+
+  // Animate score ring
+  setTimeout(() => {
+    const circumference = 2 * Math.PI * 54; // ≈ 339
+    const dash = (score / 100) * circumference;
+    document.getElementById('ringFill').style.strokeDasharray = `${dash} ${circumference}`;
+  }, 100);
+
+  // Animate number
+  let n = 0;
+  const interval = setInterval(() => {
+    n = Math.min(n + 2, score);
+    document.getElementById('scoreNum').textContent = n;
+    if (n >= score) clearInterval(interval);
+  }, 20);
+
+  // Grade
+  let grade, desc, ringColor;
+  if (score >= 85) {
+    grade = 'Optimized'; desc = 'Your retirement strategy is well-calibrated for cross-border NRI life. Minor tuning can still add value.'; ringColor = '#4cae8a';
+  } else if (score >= 70) {
+    grade = 'On Track'; desc = 'Solid foundations in place. Some key gaps remain — addressing them now compounds significantly by retirement.'; ringColor = '#c9a84c';
+  } else if (score >= 50) {
+    grade = 'Needs Work'; desc = 'You\'re saving but likely leaving money on the table. Tax inefficiencies and cross-border gaps need attention.'; ringColor = '#e09a32';
+  } else {
+    grade = 'At Risk'; desc = 'Significant planning gaps exist that could derail your retirement goals. Start with tax compliance and account structuring immediately.'; ringColor = '#e05252';
+  }
+
+  document.getElementById('gradeLabel').textContent = grade;
+  document.getElementById('gradeLabel').style.color = ringColor;
+  document.getElementById('ringFill').style.stroke = ringColor;
+  document.getElementById('gradeDesc').textContent = desc;
+
+  // Category cards
+  const colors = { geo: '#5b8fe8', tax: '#c9a84c', alloc: '#9b72e8', health: '#4cae8a', income: '#e09a32' };
+  const catGrid = document.getElementById('catGrid');
+  catGrid.innerHTML = '';
+  for (const c in catData) {
+    const d = catData[c];
+    const col = colors[c];
+    catGrid.innerHTML += `
+      <div class="cat-card">
+        <div class="cat-name">${CAT_LABELS[c]}</div>
+        <div class="cat-score" style="color:${col}">${d.weighted}<span style="font-size:1rem;color:var(--muted)">/${d.weight}</span></div>
+        <div class="cat-bar"><div class="cat-fill" style="background:${col};width:${d.pct}%"></div></div>
+      </div>`;
+  }
+
+  // Recommendations
+  buildRecs(catData, score);
+}
+
+function buildRecs(catData, score) {
+  const recs = [];
+  const a = {};
+  for (const q in answers) a[q] = answers[q].score;
+
+  // Tax recs
+  if (a.q4 <= 3) recs.push({ sev:'critical', icon:'⚠️', title:'Learn the India-USA DTAA Treaty', body:'The Double Tax Avoidance Agreement is your most powerful cross-border tool. Social Security, pension income, and dividends have specific treaty protections. Consult an NRI-specialized CPA immediately.' });
+  if (a.q5 <= 4) recs.push({ sev:'critical', icon:'📊', title:'Max Out US Retirement Accounts', body:'If you\'re not maxing 401k ($23,000) + IRA ($7,000) in 2024, you\'re paying unnecessary tax today. These accounts also have DTAA protections when you retire to India.' });
+  if (a.q6 === 1) recs.push({ sev:'critical', icon:'🏦', title:'Convert India Accounts to NRE/NRO', body:'Resident savings accounts as an NRI are illegal per FEMA. Convert immediately — NRE accounts offer full repatriation and interest is tax-free in India.' });
+  if (a.q7 === 0) recs.push({ sev:'critical', icon:'🔴', title:'Urgent: FBAR & FATCA Compliance', body:'Non-filing penalties start at $10,000 per account per year. If you have India accounts over $10,000 combined, file FBAR. Over $50,000 in foreign assets — file Form 8938. Use the IRS Streamlined Procedure if you\'re behind.' });
+
+  // Allocation recs
+  if (a.q8 === 2) recs.push({ sev:'warning', icon:'⚖️', title:'Rebalance Your India-US Allocation', body:'Heavy concentration in either country creates unnecessary risk. If retiring in India, target 30-40% INR assets. If staying in US, keep India exposure under 20%.' });
+  if (a.q9 === 2) recs.push({ sev:'warning', icon:'💱', title:'Account for INR Depreciation Risk', body:'INR has lost ~3-4% vs USD annually over the past 20 years. ₹1 crore today will be worth roughly $85K — but in 20 years that same corpus buys far fewer dollars. Size India assets accordingly.' });
+  if (a.q10 === 1) recs.push({ sev:'info', icon:'🇮🇳', title:'Activate Your NPS Account', body:'National Pension System offers dual tax benefits and is accessible to NRIs. Tier 1 contributions reduce Indian taxable income and returns are market-linked. An excellent complement to your US 401k.' });
+
+  // Healthcare recs
+  if (a.q11 === 2) recs.push({ sev:'warning', icon:'🏥', title:'ACA Bridge Strategy for Early Retirement', body:'If retiring before 65, budget $1,000–$1,800/month for ACA health insurance. Alternatively, retiring to India eliminates this cost — private comprehensive coverage runs ₹30,000–₹80,000/year.' });
+  if (a.q12 === 3) recs.push({ sev:'warning', icon:'👨‍👩‍👧', title:'Budget Parent Care into Retirement Corpus', body:'Unplanned parent care can derail retirement. Add a separate ₹25–50 lakh buffer (or more depending on health) into your India-side corpus and consider a parent-care insurance policy.' });
+
+  // Income recs
+  if (a.q13 === 0) recs.push({ sev:'critical', icon:'🗺️', title:'Build a Cross-Border Withdrawal Blueprint', body:'The sequence matters enormously for tax efficiency. General NRI rule: first draw from taxable brokerage (capital gains rates), then Traditional 401k (ordinary income), and delay Roth and Social Security as long as possible.' });
+  if (a.q14 <= 3) recs.push({ sev:'info', icon:'🛡️', title:'Check Your Social Security Estimate', body:'Go to ssa.gov/myaccount. If you have 40 work credits (~10 years), you qualify. Delaying from 62 to 70 increases your monthly benefit by ~76%. Under the DTAA, India-resident US citizens pay reduced US tax on SS.' });
+  if (a.q15 === 0) recs.push({ sev:'warning', icon:'🎯', title:'Set Your Retirement Corpus Target Today', body:'Use the 25x rule as a starting point. Example: if you need $4,000/month in the US or ₹80,000/month in India, you need $1.2M or ₹2.4 crore respectively. Build two separate targets for each country.' });
+  if (a.q16 === 1) recs.push({ sev:'info', icon:'👤', title:'Find a Cross-Border NRI Financial Advisor', body:'Look for a SEBI-registered advisor in India + a US CFP or CPA with NRI experience. FEMA, DTAA, and PFIC rules require specialists — a US-only advisor can\'t optimize your India-side assets.' });
+
+  if (score >= 85) recs.push({ sev:'good', icon:'✅', title:'Strong Foundation — Now Fine-Tune', body:'Consider Roth conversion ladders during any low-income years. Review PFIC rules if you hold Indian mutual funds directly. Estate planning across both jurisdictions is your next frontier.' });
+
+  const list = document.getElementById('recList');
+  list.innerHTML = '';
+  recs.slice(0, 8).forEach((r, i) => {
+    list.innerHTML += `
+      <div class="rec-item" style="animation-delay:${0.1*i}s">
+        <div class="rec-icon sev-${r.sev}">${r.icon}</div>
+        <div class="rec-content">
+          <h4>${r.title}</h4>
+          <p>${r.body}</p>
+        </div>
+      </div>`;
+  });
+}
+
+function resetQuiz() {
+  for (const q in answers) delete answers[q];
+  document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('quiz').style.display = 'block';
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
